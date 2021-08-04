@@ -10,7 +10,7 @@ app.use(
   cors({
     origin: [
       process.env.WEBSITE1_URL,
-      process.env.WEBSITE1_URL,
+      process.env.WEBSITE2_URL,
       process.env.WEBSITE3_URL,
     ],
     credentials: true,

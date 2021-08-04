@@ -7,6 +7,18 @@ const { registerValidation, loginValidation } = require("../validation");
 const verify = require("./verifyToken");
 const nodemailer = require("nodemailer");
 
+String.prototype.encodeDecode = function () {
+  var nstr = "";
+
+  for (var i = 0; i < this.length; i++) {
+    nstr += String.fromCharCode(
+      this.charCodeAt(i) ^ Number(process.env.ENCODENUM)
+    );
+  }
+
+  return nstr;
+};
+
 const tokenGen = (length) => {
   var result = "";
   var characters =
@@ -19,14 +31,12 @@ const tokenGen = (length) => {
 };
 
 router.post("/register", async (req, res) => {
-  //Validate
   const { error } = registerValidation(req.body);
   if (error) return res.status(400).send(error.details[0].message);
 
   const emailExist = await User.findOne({ email: req.body.email });
   if (emailExist) return res.status(400).send("Email already exists");
 
-  //Hash Password
   const salt = await bcrypt.genSalt(10);
   const hashedPassword = await bcrypt.hash(req.body.password, salt);
 
@@ -44,25 +54,13 @@ router.post("/register", async (req, res) => {
         res.status(400).send(err);
       } else {
         const token = jwt.sign({ _id: data._id }, process.env.TOKEN_SECRET);
-        const cookieExpiry = new Date();
-        cookieExpiry.setYear(cookieExpiry.getYear() + 8000);
-        res
-          .cookie("authToken", token, {
-            httpOnly: true,
-            expires: cookieExpiry,
-            overwrite: true,
-          })
-          .cookie("loggedIn", true, {
-            expires: cookieExpiry,
-          })
-          .send("Registerd");
+        res.json({ token: token.encodeDecode() });
       }
     }
   );
 });
 
 router.post("/login", async (req, res) => {
-  //Validate
   const { error } = loginValidation(req.body);
   if (error) return res.status(400).send(error.details[0].message);
 
@@ -70,7 +68,7 @@ router.post("/login", async (req, res) => {
   if (!user) return res.status(400).send("Email or password is wrong");
 
   const validPass = await bcrypt.compare(req.body.password, user.password);
-  if (!validPass) return res.status(400).send("Invalid password");
+  if (!validPass) return res.status(400).send("Email or password is wrong");
 
   User.findOneAndUpdate(
     { email: req.body.email },
@@ -78,21 +76,8 @@ router.post("/login", async (req, res) => {
     (err, data) => {
       if (err) return res.status(400).send("An error occured");
 
-      //Create and assign a token
       const token = jwt.sign({ _id: user._id }, process.env.TOKEN_SECRET);
-      const cookieExpiry = new Date();
-      cookieExpiry.setYear(cookieExpiry.getYear() + 8000);
-      res
-        .cookie("authToken", token, {
-          httpOnly: true,
-          expires: cookieExpiry,
-          overwrite: true,
-        })
-        .cookie("loggedIn", true, {
-          expires: cookieExpiry,
-          overwrite: true,
-        })
-        .send("Logged in");
+      res.json({ token: token.encodeDecode() });
     }
   );
 });
@@ -106,17 +91,7 @@ router.get("/logout", verify, async (req, res) => {
     { $set: { loggedIn: false } },
     (err, data) => {
       if (err) return res.status(400).send("An error occured");
-
-      res
-        .cookie("authToken", "", {
-          maxAge: 0,
-          overwrite: true,
-        })
-        .cookie("loggedIn", "", {
-          maxAge: 0,
-          overwrite: true,
-        })
-        .send("Logged Out");
+      res.send("Logged Out");
     }
   );
 });
@@ -187,11 +162,8 @@ router.post("/resetpass-request", async (req, res) => {
         html: text,
       };
 
-      return transporter.sendMail(mailOptions, (error, response) => {
-        if (error) {
-          console.log(error);
-          return res.status(500).send(error);
-        }
+      transporter.sendMail(mailOptions, (error, response) => {
+        if (error) return res.status(500).send(error);
         res.status(200).send("Reset Email sent");
       });
     }
@@ -241,7 +213,8 @@ router.get("/find", verify, (req, res) => {
 
   User.findById(userId, (err, data) => {
     if (err) return res.stauts(500).send(err);
-    res.json({ name: data.name });
+    if (!data.name) return res.status(500).send("Unable to fetch Username");
+    res.send({ name: data.name });
   });
 });
 

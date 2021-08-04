@@ -2,13 +2,16 @@ const mongoose = require("mongoose");
 const { itemsConnection } = require("../mongooseConnection");
 
 const approvalItemsSchema = mongoose.Schema({
-  name: String,
+  seriesName: String,
+  titleName: String,
+  authorName: String,
   image: String,
   genre: String,
   minAge: String,
   description: String,
-  userId: String,
   userName: String,
+  userId: String,
+  publishedYear: String,
 });
 
 module.exports = itemsConnection.model("approvalItems", approvalItemsSchema);
