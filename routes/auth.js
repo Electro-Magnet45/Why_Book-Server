@@ -82,7 +82,7 @@ router.post("/login", async (req, res) => {
   );
 });
 
-router.get("/logout", verify, async (req, res) => {
+router.post("/logout", verify, async (req, res) => {
   const user = await User.findOne({ _id: req.user._id });
   if (!user) return;
 
@@ -208,7 +208,7 @@ router.post("/reset-password", async (req, res) => {
   });
 });
 
-router.get("/find", verify, (req, res) => {
+router.post("/find", verify, (req, res) => {
   const userId = req.user._id;
 
   User.findById(userId, (err, data) => {

@@ -13,7 +13,7 @@ String.prototype.encodeDecode = function () {
 };
 
 module.exports = function (req, res, next) {
-  const token = req.cookies["authToken"];
+  const token = req.body.token;
   if (!token) return res.status(401).send("Access Denied");
 
   try {
@@ -21,6 +21,6 @@ module.exports = function (req, res, next) {
     req.user = verified;
     next();
   } catch (err) {
-    res.status(400).send("Invalid Token");
+    res.status(400).send("Invalid token");
   }
 };

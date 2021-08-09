@@ -5,7 +5,6 @@ const approvalItemsSchema = mongoose.Schema({
   seriesName: String,
   titleName: String,
   authorName: String,
-  image: String,
   genre: String,
   minAge: String,
   description: String,
