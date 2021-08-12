@@ -5,12 +5,11 @@ const resetPassSchema = mongoose.Schema({
   userId: String,
   token: String,
   email: String,
-  timeStamp: {
+  expireAt: {
     type: Date,
     default: Date.now,
+    index: { expires: "5m" },
   },
 });
-
-resetPassSchema.index({ timeStamp: 1 }, { expireAfterSeconds: 1800 });
 
 module.exports = usersConnection.model("resetPass", resetPassSchema);
