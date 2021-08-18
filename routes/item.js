@@ -4,8 +4,7 @@ const verify = require("./verifyToken");
 
 router.post("/new", verify, async (req, res) => {
   const newItem = req.body;
-  const userId = req.user._id;
-  newItem.userId = userId;
+  newItem.userId = req.user._id;
   newItem.publishedYear = "";
   delete newItem.token;
 

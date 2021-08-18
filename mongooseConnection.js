@@ -13,5 +13,6 @@ function makeNewConnection(uri) {
 
 const usersConnection = makeNewConnection(process.env.DB1_URL);
 const itemsConnection = makeNewConnection(process.env.DB2_URL);
+const reviewsConnection = makeNewConnection(process.env.DB3_URL);
 
-module.exports = { usersConnection, itemsConnection };
+module.exports = { usersConnection, itemsConnection, reviewsConnection };
